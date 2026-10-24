@@ -1,5 +1,17 @@
+# Node & Frontend
 node_modules/
-backend/venv/
-backend/.venv/
-__pycache__/
+dist/
 .env
+
+# Python & Backend
+backend/venv/
+__pycache__/
+*.pyc
+
+# Database (CRITICAL to ignore!)
+*.db
+*.sqlite3
+landeck.db
+
+# OS Files
+.DS_Store

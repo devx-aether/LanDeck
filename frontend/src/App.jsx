@@ -25,11 +25,13 @@ function App() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const sysRes = await fetch('http://127.0.0.1:8008/api/system/stats');
+        const sysRes = await fetch('http://192.168.29.44:8000/api/system/stats');
+        // const sysRes = await fetch('http://127.0.0.1:8008/api/system/stats');
         const sysData = await sysRes.json();
         setStats(sysData);
 
-        const docRes = await fetch('http://127.0.0.1:8008/api/docker/status');
+        const docRes = await fetch('http://192.168.29.44:8000/api/docker/status');
+        // const docRes = await fetch('http://127.0.0.1:8008/api/docker/status');
         const docData = await docRes.json();
         if (docData.containers) {
           setContainers(docData.containers);
