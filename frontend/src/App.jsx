@@ -10,6 +10,7 @@ function App() {
     status: 'connecting...' 
   });
   const [containers, setContainers] = useState([]);
+  const [qbitStats, setQbitStats] = useState({ status: 'offline', global_dl_mb: 0, active_torrent: null });
 
   // Helper function to format seconds into a readable string
   const formatUptime = (seconds) => {
@@ -36,6 +37,12 @@ function App() {
         if (docData.containers) {
           setContainers(docData.containers);
         }
+
+        // Fetch qBittorrent Stats
+        const qbitRes = await fetch('http://YOUR_SERVER_IP:8000/api/apps/qbittorrent');
+        const qbitData = await qbitRes.json();
+        setQbitStats(qbitData);
+
       } catch (error) {
         console.error("Error fetching stats:", error);
         setStats(prev => ({ ...prev, status: 'offline' }));
@@ -112,6 +119,8 @@ function App() {
           </div>
         </div>
 
+        
+
         {/* Docker Services Card */}
         <div className="col-span-1 md:col-span-2 bg-zinc-900/40 border border-white/5 rounded-3xl p-5 backdrop-blur-md">
           <div className="flex justify-between items-start mb-4">
@@ -129,7 +138,27 @@ function App() {
             ) : (
               containers.map(container => (
                 <div key={container.id} className="flex items-center justify-between bg-zinc-800/40 border border-zinc-700/30 rounded-2xl p-3">
-                  <span className="text-sm font-medium text-zinc-200 capitalize">{container.name}</span>
+                  <div className="flex flex-col w-full max-w-[200px] sm:max-w-xs">
+                    <span className="text-sm font-medium text-zinc-200 capitalize">{container.name}</span>
+                    
+                    {/* INJECT QBITTORRENT TELEMETRY */}
+                    {container.name.toLowerCase().includes('qbittorrent') && qbitStats.status === 'online' && qbitStats.active_torrent && (
+                      <div className="mt-2 w-full">
+                        <div className="flex justify-between items-end mb-1">
+                          <span className="text-[10px] text-zinc-400 truncate w-32" title={qbitStats.active_torrent.name}>
+                            {qbitStats.active_torrent.name}
+                          </span>
+                          <span className="text-[10px] text-emerald-400 font-mono">{qbitStats.active_torrent.speed_mb} MB/s</span>
+                        </div>
+                        <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                          <div 
+                            className="bg-emerald-500 h-full rounded-full transition-all duration-500" 
+                            style={{ width: `${qbitStats.active_torrent.progress}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   
                   <div className="flex gap-2">
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono border ${container.status === 'running' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'}`}>
