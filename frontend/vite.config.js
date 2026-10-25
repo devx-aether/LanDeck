@@ -13,11 +13,22 @@ export default defineConfig({
       manifest: {
         name: 'LanDeck Control',
         short_name: 'LanDeck',
+        description: 'Home Server Control Center',
         theme_color: '#090a0f',
         background_color: '#090a0f',
         display: 'standalone',
+        orientation: 'portrait',
         icons: [
-          { src: '/vite.svg', sizes: '192x192', type: 'image/svg+xml' }
+          {
+            src: 'https://cdn-icons-png.flaticon.com/512/814/814467.png', // Fallback standard icon
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: 'https://cdn-icons-png.flaticon.com/512/814/814467.png', // Fallback standard icon
+            sizes: '512x512',
+            type: 'image/png'
+          }
         ]
       }
     })
