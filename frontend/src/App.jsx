@@ -26,25 +26,33 @@ function App() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const sysRes = await fetch('http://192.168.29.44:8000/api/system/stats');
-        // const sysRes = await fetch('http://127.0.0.1:8008/api/system/stats');
-        const sysData = await sysRes.json();
-        setStats(sysData);
+        // Fetch everything at the exact same time
+        const [sysRes, docRes, qbitRes] = await Promise.allSettled([
+          fetch('http://192.168.29.44:8000/api/system/stats').then(res => res.json()),
+          fetch('http://192.168.29.44:8000/api/docker/status').then(res => res.json()),
+          fetch('http://192.168.29.44:8000/api/apps/qbittorrent').then(res => res.json())
 
-        const docRes = await fetch('http://192.168.29.44:8000/api/docker/status');
-        // const docRes = await fetch('http://127.0.0.1:8008/api/docker/status');
-        const docData = await docRes.json();
-        if (docData.containers) {
-          setContainers(docData.containers);
+        ]);
+
+        // 1. Update System
+        if (sysRes.status === 'fulfilled') {
+          setStats(sysRes.value);
+        } else {
+          setStats(prev => ({ ...prev, status: 'offline' }));
         }
 
-        // Fetch qBittorrent Stats
-        const qbitRes = await fetch('http://YOUR_SERVER_IP:8000/api/apps/qbittorrent');
-        const qbitData = await qbitRes.json();
-        setQbitStats(qbitData);
+        // 2. Update Docker
+        if (docRes.status === 'fulfilled' && docRes.value.containers) {
+          setContainers(docRes.value.containers);
+        }
+
+        // 3. Update qBittorrent
+        if (qbitRes.status === 'fulfilled') {
+          setQbitStats(qbitRes.value);
+        }
 
       } catch (error) {
-        console.error("Error fetching stats:", error);
+        console.error("Critical fetch error:", error);
         setStats(prev => ({ ...prev, status: 'offline' }));
       }
     };
@@ -142,7 +150,7 @@ function App() {
                     <span className="text-sm font-medium text-zinc-200 capitalize">{container.name}</span>
                     
                     {/* INJECT QBITTORRENT TELEMETRY */}
-                    {container.name.toLowerCase().includes('qbittorrent') && qbitStats.status === 'online' && qbitStats.active_torrent && (
+                    {container.name.toLowerCase().includes('qbit') && qbitStats.status === 'online' && qbitStats.active_torrent && (
                       <div className="mt-2 w-full">
                         <div className="flex justify-between items-end mb-1">
                           <span className="text-[10px] text-zinc-400 truncate w-32" title={qbitStats.active_torrent.name}>
